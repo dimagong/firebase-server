@@ -5,11 +5,12 @@ var uniqid = require('uniqid');
 var admin = require("firebase-admin");
 const cors = require('cors');
 
-var serviceAccount = require("./shopserver-firebase-adminsdk-pztmr-5a1ba53d94.json");
-
+//var serviceAccount = require("./shopserver-firebase-adminsdk-pztmr-5a1ba53d94.json");
+var serviceAccount = require("./key/market-db-41f10-1-export.json");
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
-    databaseURL: "https://shopserver.firebaseio.com"
+    databaseURL: "https://market-db-41f10.firebaseio.com"
+    //databaseURL: "https://shopserver.firebaseio.com"
   });
 
   var db = admin.firestore();
@@ -23,16 +24,17 @@ const app = express()
 app.use(cors({ origin: true }));
 
 app.post('/register', async (req, res) => {
-    const {email, password, first_name = '', second_name = '', phone = ''} = req.body;
+    const {email, password, name = ''} = req.body;
 
     try{
         db.collection('users').doc(email)
         .set({
-            email, first_name, second_name, phone, password: md5(password)
+            email, name, password: md5(password)
         }, {merge: true});
 
-
-        res.send({email, first_name, second_name, phone})
+        //const user = [email, name];
+        //res.send({custom})
+        res.send({name})
     } catch(err){
         console.log('err', err)
         res.status(400).send({message: err})
@@ -67,14 +69,15 @@ app.post('/login', async(req, res) => {
 
 app.get('/get-products', async(req, res) => {
     try{
-        const snapshot = await db.collection('products').get()
+        const snapshot = await db.collection('data').get()
           const products = []
           snapshot.forEach(doc => {
             products.push(doc.data());
           });
        //  const products = await Products.findAll()
 
-        res.send({products})        
+        res.send({products})   
+         
     } catch(err){
         console.log('err', err)
         res.status(400).send({message: err})
@@ -100,3 +103,25 @@ app.post('/add-product', async(req, res) => {
 })
 
 exports.app = functions.https.onRequest(app);
+
+
+
+//Project Console: https://console.firebase.google.com/project/market-db-41f10/overview
+//Hosting URL: https://market-db-41f10.web.app
+
+// app.post('/register', async (req, res) => {
+//     const {email, password, first_name = '', second_name = '', phone = ''} = req.body;
+
+//     try{
+//         db.collection('users').doc(email)
+//         .set({
+//             email, first_name, second_name, phone, password: md5(password)
+//         }, {merge: true});
+
+
+//         res.send({email, first_name, second_name, phone})
+//     } catch(err){
+//         console.log('err', err)
+//         res.status(400).send({message: err})
+//     }
+// })
